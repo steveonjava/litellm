@@ -3157,6 +3157,50 @@ def test_message_plus_function_call_merged_into_single_choice():
     assert tool_calls[0]["function"]["arguments"] == '{"location": "Paris"}'
 
 
+def test_multiblock_message_plus_function_call_merged_into_single_choice():
+    from openai.types.responses import ResponseOutputMessage, ResponseOutputText
+
+    message = ResponseOutputMessage(
+        id="msg_multiblock",
+        content=[
+            ResponseOutputText(
+                annotations=[],
+                text="Fetching ",
+                type="output_text",
+                logprobs=[],
+            ),
+            ResponseOutputText(
+                annotations=[],
+                text="the weather now.",
+                type="output_text",
+                logprobs=[],
+            ),
+        ],
+        role="assistant",
+        status="completed",
+        type="message",
+    )
+    result = _build_message_plus_tool_call_response(
+        output_items=[
+            message,
+            _make_function_tool_call(
+                call_id="call_multiblock",
+                name="get_weather",
+                arguments='{"location": "Paris"}',
+            ),
+        ]
+    )
+
+    assert len(result.choices) == 1
+    choice = result.choices[0]
+    assert choice.index == 0
+    assert choice.finish_reason == "tool_calls"
+    assert choice.message.content == "Fetching the weather now."
+    tool_calls = choice.message.tool_calls
+    assert tool_calls is not None and len(tool_calls) == 1
+    assert tool_calls[0]["id"] == "call_multiblock"
+
+
 def test_tool_only_turn_unchanged():
     """Guard against regressing the pre-fix behaviour for tool-only turns: when the
     Responses output has no assistant message, a fresh Choice must still be appended
