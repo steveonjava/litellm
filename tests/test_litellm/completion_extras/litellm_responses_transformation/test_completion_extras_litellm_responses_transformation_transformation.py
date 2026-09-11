@@ -1,8 +1,7 @@
 import json
 import os
-import unittest
-from typing import TYPE_CHECKING, Final, List, Literal, Optional, Tuple
-from unittest.mock import ANY, MagicMock, Mock, patch
+from typing import TYPE_CHECKING, Final, Literal
+from unittest.mock import MagicMock, Mock, patch
 
 import httpx
 import pytest
@@ -1598,7 +1597,6 @@ def test_map_reasoning_effort_adds_summary_detailed(monkeypatch):
             assert result_passthrough == Reasoning(effort=effort)
         for dropped in ("ultra", "hgih", "unknown_value", "", "default"):
             assert handler._map_reasoning_effort(dropped) is None
-        print("✓ Enumerated levels pass through and unknown ones are dropped")
 
 
     finally:
@@ -3984,8 +3982,8 @@ async def test_acompletion_bridge_normalizes_tool_choice_on_the_wire(
 
 
 def _make_incomplete_responses_api_response(
-    incomplete_reason: Optional[str],
-    output: "List[ResponseOutputItem]",
+    incomplete_reason: str | None,
+    output: "list[ResponseOutputItem]",
     status: Literal["completed", "incomplete"] = "incomplete",
     empty_incomplete_details: bool = False,
 ) -> "ResponsesAPIResponse":
